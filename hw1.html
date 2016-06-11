@@ -9,6 +9,7 @@
 <meta name="generator" content="pandoc" />
 
 
+<meta name="author" content="Clara Chun" />
 
 
 <title>homework1</title>
@@ -115,6 +116,7 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">homework1</h1>
+<h4 class="author"><em>Clara Chun</em></h4>
 
 </div>
 
@@ -135,16 +137,79 @@ plane_max_ad</code></pre>
 <pre><code>## [1] &quot;N384HA&quot;</code></pre>
 <ol style="list-style-type: decimal">
 <li>How many rows are in this data frame? <strong>num_rows</strong></li>
+</ol>
+<pre class="r"><code>num_rows = nrow(flights)
+num_rows</code></pre>
+<pre><code>## [1] 336776</code></pre>
+<ol start="2" style="list-style-type: decimal">
 <li>How many variables are in this data frame? <strong>num_vars</strong></li>
+</ol>
+<pre class="r"><code>num_vars = length(flights)
+num_vars</code></pre>
+<pre><code>## [1] 19</code></pre>
+<ol start="3" style="list-style-type: decimal">
 <li>What was the longest departure delay? <strong>longest_dep_delay</strong></li>
-<li>How long were the top 10 longest flights measured from departure to arrival? <strong>longest_flights</strong></li>
+</ol>
+<pre class="r"><code>longest_dep_delay = max(flights$dep_delay, na.rm = TRUE)
+longest_dep_delay</code></pre>
+<pre><code>## [1] 1301</code></pre>
+<ol start="4" style="list-style-type: decimal">
+<li>How long were the top 10 longest flights measured using <code>air_time</code>? <strong>longest_flights</strong></li>
+</ol>
+<pre class="r"><code>longest_flights = head(sort(flights$air_time, decreasing = TRUE), 10)
+longest_flights</code></pre>
+<pre><code>##  [1] 695 691 686 686 683 679 676 676 675 671</code></pre>
+<ol start="5" style="list-style-type: decimal">
 <li>What is the average departure delay time for United Airlines (carrier UA)? <strong>ua_delay</strong></li>
+</ol>
+<pre class="r"><code>ua_delay = mean(flights$dep_delay[flights$carrier == &quot;UA&quot;], na.rm = TRUE)
+ua_delay</code></pre>
+<pre><code>## [1] 12.10607</code></pre>
+<ol start="6" style="list-style-type: decimal">
 <li>Order the months from highest average departure delay time to lowest. <strong>month_delay</strong></li>
+</ol>
+<pre class="r"><code>mJan = mean(flights$dep_delay[flights$month == 1], na.rm = TRUE)
+mFeb = mean(flights$dep_delay[flights$month == 2], na.rm = TRUE)
+mMar = mean(flights$dep_delay[flights$month == 3], na.rm = TRUE)
+mApr = mean(flights$dep_delay[flights$month == 4], na.rm = TRUE)
+mMay = mean(flights$dep_delay[flights$month == 5], na.rm = TRUE)
+mJun = mean(flights$dep_delay[flights$month == 6], na.rm = TRUE)
+mJul = mean(flights$dep_delay[flights$month == 7], na.rm = TRUE)
+mAug = mean(flights$dep_delay[flights$month == 8], na.rm = TRUE)
+mSep = mean(flights$dep_delay[flights$month == 9], na.rm = TRUE)
+mOct = mean(flights$dep_delay[flights$month == 10], na.rm = TRUE)
+mNov = mean(flights$dep_delay[flights$month == 11], na.rm = TRUE)
+mDec = mean(flights$dep_delay[flights$month == 12], na.rm = TRUE)
+
+month_delay = sort(c(mJan, mFeb, mMar, mApr, mMay, mJun, mJul, mAug, mSep, mOct, mNov, mDec), decreasing = TRUE)
+month_delay</code></pre>
+<pre><code>##  [1] 21.727787 20.846332 16.576688 13.938038 13.227076 12.986859 12.611040
+##  [8] 10.816843 10.036665  6.722476  6.243988  5.435362</code></pre>
+<ol start="7" style="list-style-type: decimal">
 <li>How many unique planes does American Airlines (AA) have? <strong>num_planes_aa</strong></li>
+</ol>
+<pre class="r"><code>num_planes_aa = length(unique(flights$tailnum[flights$carrier == &quot;UA&quot;]))
+num_planes_aa</code></pre>
+<pre><code>## [1] 621</code></pre>
+<ol start="8" style="list-style-type: decimal">
 <li>How many flights originating from JFK flew more than 1000 miles? <strong>jfk_1000mi</strong></li>
+</ol>
+<pre class="r"><code>jfk_1000mi = length(flights$origin[flights$origin == &quot;JFK&quot; &amp; flights$distance &gt; 1000])
+jfk_1000mi</code></pre>
+<pre><code>## [1] 62071</code></pre>
+<ol start="9" style="list-style-type: decimal">
 <li>How many airlines fly from LGA to DFW? <strong>num_lga_dfw</strong></li>
+</ol>
+<pre class="r"><code>num_lga_dfw = length(flights$carrier[flights$origin == &quot;LGA&quot; &amp; flights$dest == &quot;DFW&quot;])
+num_lga_dfw</code></pre>
+<pre><code>## [1] 4858</code></pre>
+<ol start="10" style="list-style-type: decimal">
 <li>Which airline had the most flights coming out of JFK? <strong>most_flights_jfk</strong></li>
 </ol>
+<pre class="r"><code>most_flights_jfk = which.max(table(flights$carrier[flights$origin == &quot;JFK&quot;]))
+most_flights_jfk</code></pre>
+<pre><code>## B6 
+##  3</code></pre>
 </div>
 
 
