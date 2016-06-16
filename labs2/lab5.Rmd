@@ -101,7 +101,7 @@ str_replace_all(countries, "-", " ")
 Use `str_detect` to see if there are any countries with the world "island" in them, ignoring case.  You may also want to look up how to use `ignore.case`.
 
 ```{r}
-any(str_detect(countries, ignore.case("island"))) 
+any(str_detect(countries,regex("island",ignore_case = TRUE)))
 
 ```
 
