@@ -3,6 +3,13 @@ title: "Strings and Functions"
 author: "Clara Chun"
 output: html_document
 ---
+```{r setup, include = FALSE}
+library(stringr)
+library(readr)
+codons <- read_csv("codons")
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 
 ## Introduction
 
@@ -27,8 +34,8 @@ You are allowed to load the following packages for this assignment:
 
 * `stringr`
 * `readr`
-library(stringr)
-library(readr)
+
+
 
 ## File Organization (GitHub Points)
 Your GitHub repository should contain 18 folders:
@@ -58,9 +65,10 @@ Generate a character vector named `files100` containing 100 files names of the f
 
 Do not use any looping constructions (we haven't covered this yet, and they're slower in `R` for this task).
 
+
 ```{r}
 # Problem 1
-files100 = paste("plot", seq(1,100), ".png", sep ="")
+files100 = paste("plot", str_pad(seq(1,100), 3, "left", "0"), ".png", sep ="")
 files100
 ```
 
@@ -99,12 +107,12 @@ str_subset(states, "^[Ww].*[^aAeEiIoOuU]$")
 
 6. Which states contain at least three `i`'s (e.g. Illinois)?
 ```{r}
-str_subset(states, "[iI]{2}")
+states[str_count(states, "[iI]") >= 3]
 ```
 
 7. Which states contain exactly five vowels (e.g. California)?
 ```{r}
-str_subset(states, "[AaEeIiOoUu]{5}")
+states[str_count(states, "[AaEeIiOoUu]")==5]
 ```
 
 8. Which states contain three consecutive vowels (e.g. Hawaii)?
@@ -117,11 +125,14 @@ str_subset(states, "([AaEeIiOoUu][AaEeIiOoUu][AaEeIiOoUu])")
 Write a function `is_hex()` that checks whether the input is a valid color in hexadecimal notation. A hex color starts with a hash `#` symbol followed by six hexadecimal digits: 0 to 9, and the first six letters A, B, C, D, E, F. Your function should not distinguish between upper and lower case letters.
 
 ```{r}
-# is_hex()
+is_hex = function(x){
+  hex = "^[#][0-9AaBbCcDdEeFf]{6}$"
+  str_detect(x,hex)
+}
 ```
 
 Change `eval` to `TRUE` to test your function.
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 is_hex("#ff0000")  # TRUE
 is_hex("#123456")  # TRUE
 is_hex("#12Fb56")  # TRUE
@@ -136,11 +147,14 @@ is_hex("blue")     # FALSE
 Write a function called `reverse_chars` that reverses a string by characters. You may find the `rev` function useful.
 
 ```{r}
-# reverse_chars()
+reverse_chars = function(x){
+  x=str_c(rev(substring(x,1:nchar(x),1:nchar(x))),collapse="")
+  x
+}
 ```
 
 Change `eval` to `TRUE` to test your function.
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 reverse_chars("Rictusempra")
 reverse_chars("Lumox Maxima")
 reverse_chars("Repello Muggletum")
@@ -159,14 +173,18 @@ Your job is to write a function `remove_tag` that takes a vector of text from an
 * `<kingdom>Plantae<\kingdom>` is converted to `Plantae`
 
 ```{r}
-# Your code
+
+remove_tag = function(x){
+  first = str_replace_all(x, "^[<].*?[>]", "")
+  str_replace_all(first, "[<].*[/]?[>]$", "")
+}
 ```
 
 Test your code:
-```{r, eval = F}
-phylo <- c("<common>dandelion<\common>",
-           "<genus>Taraxacum<\genus>",
-           "<kingdom>Plantae<\kingdom>")
+```{r, eval = TRUE}
+phylo <- c("<common>dandelion</common>",
+           "<genus>Taraxacum</genus>",
+           "<kingdom>Plantae</kingdom>")
 remove_tag(phylo)
 ```
 
@@ -177,6 +195,8 @@ Our genetic blueprint, DNA, consists of nucleotides each composed of a sugar, de
 That's the extent of the biology you need to know, but if you want to read more of the technicalities, [see this wikipedia article for more information.](https://en.wikipedia.org/wiki/DNA_codon_table)  We ignore START codons in this problem.
 
 A csv file of the DNA to amino acid conversion is given with the homework.  Use a relative path from your `hw2` directory to load that data frame in with the `read_csv` function in the `readr` package.
+library(readr)
+codons <- read_csv("codons")
 
 Write a function `dna_to_aa` that converts a sequence of DNA given as a string into a sequence of amino acids.  If the sequence contains an invalid DNA character (something outside CGAT), your function should return an error stating "Invalid DNA sequence".
 
@@ -185,12 +205,33 @@ Hints:
 * Break this problem down into steps.  This is more than a one-liner
 * `str_replace_all` can take a named vector as one of its arguments.
 
+
+
 ```{r}
-# dna_to_aa()
+
+dna_to_aa = function(x){
+  dna3 = codons$dna_triplet
+  aa = codons$amino_acid
+  string=""
+  dna = substring(x, seq(1,nchar(x),3), seq(3,nchar(x),3))
+
+  if(str_detect(x, "[^CGAT]") == TRUE){
+  return("Invalid DNA Sequence.")
+  } 
+  else{
+  for(i in 1:length(dna)){
+  
+  string[i]=aa[which(str_detect(dna3,dna[i]))]
+}
+}
+return(paste(string,collapse=""))
+
+}
+
 ```
 
 Test your function:
-```{r, eval = F}
+```{r, eval = T}
 dna_to_aa("GAGCCATGCATT") # "EPCI"
 dna_to_aa("ATCTAGATAGTAGGC") # "IStopIVG"
 dna_to_aa("UCUGAGAAU") # "Invalid DNA sequence"
