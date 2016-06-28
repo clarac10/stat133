@@ -22,7 +22,7 @@ The function should otherwise not return anything.  Hint: A for-loop would be mo
 ```{r}
 Spooky = function(n){
   for (i in 1:n){
-    print(str_c(i,"spooky",(i+2),"me"), sep="")
+    print(str_c(i,"spooky",(i+2),"me"), sep="") #must use print to print everything out. If you use return, then it only gives you one output
   }
 }
 ```
@@ -35,7 +35,7 @@ Spooky(3)
 Write a function `FlipTilHeads` that simulates flipping a potentially biased coin until a head appears.  The function return the number of the flip that resulted in a head. This number is called a stopping time and follows a geometric distribution. The function should have an argument `prob`, the probability of getting heads, that takes on a default value of 0.5 (a fair coin). Remember that you can use the `sample` function to help you simulate random draws.  Alternatively, if you know what the binomial distribution is, you may want to look into `rbinom`.  Hint: A while loop is probably more appropriate in this problem--why? __A while loop is appropriate here because we don't know how many times to repeat something as we're observing until a head appears.__
 
 ```{r}
-FlipTilHeads = function(prob){
+FlipTilHeads = function(prob=0.5){
   counter = 0
   coin = c("H","T")
   while (sample(coin, 1, replace = TRUE, prob=c(prob,1-prob)) == "H"){
