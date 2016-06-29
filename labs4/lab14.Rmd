@@ -1,0 +1,62 @@
+---
+title: "lab14"
+author: "Clara Chun"
+date: "June 29, 2016"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(readr)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(ggrepel)
+library(grid)
+library(gridExtra)
+```
+
+
+```{r}
+econ = read_csv("/Users/Clara/Documents/Stat_133/stat133/labs4/EconomistData.csv")[,2:6]
+```
+
+
+```{r}
+ggplot(econ, aes(CPI, HDI)) + geom_point(aes(color = Region))
+```
+
+```{r}
+ggplot(econ, aes(CPI, HDI)) + geom_point(shape = 21, size = 3, stroke = 2, aes(color = Region)) + geom_smooth(method = "lm", formula = y~log(x), se = FALSE, color ="red") 
+```
+
+```{r}
+points_to_label= c("Russia", "Venezuela", "Iraq", "Myanmar", "Sudan","Afghanistan", "Congo", "Greece", "Argentina", "Brazil","India", "Italy", "China", "South Africa", "Spain","Botswana", "Cape Verde", "Bhutan", "Rwanda", "France","United States", "Germany", "Britain", "Barbados", "Norway", "Japan", "New Zealand", "Singapore")
+econC = filter(econ, econ$Country %in% points_to_label)
+
+ggplot(econ, aes(CPI, HDI)) + geom_point(shape = 21, size = 3, stroke = 2, aes(color = Region)) + geom_smooth(method = "lm", formula = y~log(x), se = FALSE, color ="red") + geom_text_repel(data = econC, aes(label = Country))
+
+```
+
+```{r}
+econ = mutate(econ, Region = as.factor(Region))
+levels(econ$Region) = c("OECD", "Americas", "Asia & Oceania", "Central and Eastern Europe", "Middle East and north Africa", "Sub-Saharan Africa")
+p = ggplot(econ, aes(CPI, HDI)) + 
+  geom_point(shape = 21, size = 3, stroke = 2, aes(color = Region)) + geom_smooth(method = "lm", formula = y~log(x), se = FALSE, color ="red") + geom_text_repel(data = econC, aes(label = Country)) +labs(title = "Corruption and Human Development", x = "Corruption Perception Index, 2011 (10 = least corrupt)", y = "Human Development Index, 2011 (1 = Best)") + scale_x_continuous(limits = c(0, 11), breaks = c(0:11)) + scale_y_continuous(limits = c(0.15, 1), breaks = seq(0, 1, by = 0.1)) + scale_colour_manual(values = c("#24576D", "#248E84", "#28AADC", "#099DD7", "#96503F", "#F2583F")) + theme_minimal() + theme(legend.position = "top", axis.line.y = element_blank(), axis.ticks.y = element_blank()) + theme(text = element_text(color = "gray20"), legend.justification = 0.1, legend.text = element_text(size = 11, color = "gray10"), axis.text = element_text(face = "italic"), axis.title.x = element_text(vjust = -1), axis.title.y = element_text(vjust = 2), axis.line = element_line(color = "gray40", size = 0.5), panel.grid.major = element_line(color = "gray50", size = 0.5), panel.grid.major.x = element_blank())
+
+footnote <- "Sources: Transparency International; UN Human Development Report"
+footgrob <- textGrob(footnote, x = 0, hjust = -0.1, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 12))
+g <- arrangeGrob(p, bottom = footgrob)
+grid.draw(g)
+
+
+
+```
+
