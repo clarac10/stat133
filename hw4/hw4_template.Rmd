@@ -59,9 +59,9 @@ loc = read_csv("~/Documents/Stat_133/stat133/hw4/dc_stations.csv")
 
 One might suspect that bike rentals are more popular at certain times of day than others.  Explore this idea by creating the graph below, titles and all.  The time of day refers to the timestamp of the start of the rental.  No special text size formatting was done, but if you decide to do so, no points will be awarded/lost.
 
-```{r}
+```{r, echo = TRUE}
 info = info %>% 
-  mutate(typeofday = ifelse(wday(sdate) == (1|7), "Weekend", "Weekday"))
+  mutate(typeofday = ifelse(wday(sdate) %in% c(1,7), "Weekend", "Weekday"))
 
 timenum = function(x) {
   x = as.numeric(x)
@@ -74,18 +74,14 @@ info = info %>%
 
 names(info)[7] = "Client"
 
-
-
 ```
 
-```{r, fig.width=8, fig.height=4}
-ggplot(info, aes(sdate)) +
+```{r, echo = TRUE, fig.width=8, fig.height=4}
+ggplot(info, aes(x = sdate, y = ..density..)) +
   geom_density(aes(fill = Client), color = NA, alpha = 0.3) + 
   facet_wrap(~typeofday) +
   ggtitle("Temporal Trends in Bike Usage") +
-  scale_y_continuous("Density", limits = c(0, 0.12), breaks = seq(0, 0.12, 0.04)) + 
   scale_x_continuous("Time of Day", limits = c(0, 24), breaks = seq(0,24,4))
-  
 
 ```
 
@@ -100,7 +96,7 @@ Hints:
 
 Bikeshare members may behave differently than casual renters.  Here we look at how their start and end stations differ in terms of crude distances.  Create the graph below, titles and all.  Distance is measured as the haversine between two stations (see note below).  Distances of more than 10km have been filtered out.
 
-```{r}
+```{r, echo = TRUE}
 source("haversine.R")
 
 latlong = loc %>% 
@@ -118,13 +114,14 @@ bike = inner_join(startend, info, c("sstation", "estation"))
 
 ```
 
-```{r, fig.width=8, fig.height=4}
+```{r, echo = TRUE, fig.width=8, fig.height=4}
 ggplot(bike, aes(dist)) +
   geom_density(aes(fill = Client), color = NA, alpha = 0.5) + 
   facet_wrap(~typeofday) +
   ggtitle("Distance Between Start and End Stations") +
   scale_y_continuous("Density", limits = c(0, 0.52), breaks = seq(0, 0.5, 0.1)) +
   scale_x_continuous("Distance", limits = c(0, 10), breaks = seq(0,10,2.5)) 
+
 ```
 
 Hint:
