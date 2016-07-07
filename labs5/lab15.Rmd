@@ -126,36 +126,39 @@ xml_find_all(a, "//person[@age > '25']")
 5. Select the names of the artists of every CD.
 
 ```{r, eval = TRUE}
-b = read_xml("<collection>
-  <artist>
-    <name>Maroon 5</name>
-    <cds>
-      <cd>V</cd>
-      <cd>It won't be soon before long</cd>
-    </cds>
-  </artist>
-  <band>
-    <name>TaeYang</name>
-    <cds>
-      <cd>Rise</cd>
-    </cds>
-  </band>
-  <band>
-    <name>Uniq</name>
-    <cds>
-      <cd>EOEO</cd>
-    </cds>
-  </band>
-  <artist>
-    <name>Michael Jackson</name>
-    <mvs>
-      <mv>Bad</mv>
-      <mv>Thriller</mv>
-    </mvs>
-  </artist>
-</collection>")
+b <- read_xml("
+  <collection>
+    <band>
+      <name>Maroon 5</name>
+      <cds>
+        <cd>V</cd>
+        <cd>It won't be soon before long</cd>
+      </cds>
+    </band>
+    <artist>
+      <name>TaeYang</name>
+      <cds>
+        <cd>Rise</cd>
+      </cds>
+    </artist>
+    <artist>
+      <name>Uniq</name>
+      <cds>
+        <cd>EOEO</cd>
+      </cds>
+    </artist>
+    <artist>
+      <name>Michael Jackson</name>
+      <mvs>
+        <mv>Bad</mv>
+        <mv>Thriller</mv>
+      </mvs>
+    </artist>
+  </collection>
+")
 
-xml_find_all(b, "//name")
+
+xml_find_all(b, "//artist[cds]/name/text()")
 ```
 ## XPathing
 
@@ -207,26 +210,26 @@ bk = read_xml('<?xml version="1.0" encoding="UTF-8"?>
 
 6.  Select the prices of all the books.
 ```{r, eval = TRUE}
-xml_find_all(bk, "//price")
+xml_find_all(bk, "//price/text()")
 ```
 
 7.  Select books that are available on the web or on kindles.
 ```{r, eval = TRUE}
-xml_find_all(bk, "/bookstore/book[@category = 'web' or @category = 'kindle']/title")
+xml_find_all(bk, "//book[@category = 'web' or @category='kindle']")
 ```
 
 8.  Select books that have page numbers available.
 ```{r, eval=TRUE}
-xml_find_all(bk, "//book[pages]/title")
+xml_find_all(bk, "//book[pages]")
 ```
 
 9.  Select the titles of books priced under $20.
 ```{r, eval = TRUE}
-xml_find_all(bk, "//book[price < '20']/title")
+xml_find_all(bk, "//book[price<'20']/title/text()")
 ```
 
 10. Select the authors of books that aren't written in English.
 ```{r, eval = TRUE}
-xml_find_all(bk, "//book[title[@lang !='en']]/author")
+xml_find_all(bk, "//book[title[@lang !='en']]/author/text()")
 ```
 
