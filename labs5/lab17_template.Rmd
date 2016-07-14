@@ -6,6 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+setwd("~/Documents/Stat_133/stat133/labs5")
 knitr::opts_chunk$set(echo = TRUE)
 library(rvest)
 library(tidyr)
@@ -97,7 +98,7 @@ houses2 <- page %>%
   html_nodes(".photo-cards li article") #look for .photo-cards then look for children that are "li" and "article".
 
 # Explore the structure of your nodeset
-html_structure(houses, houses2) #should produce TRUE
+html_structure(houses) #should produce TRUE
 
 # Grabbing the addresses using a CSS selector
 address <- houses %>%
@@ -116,9 +117,9 @@ params <- houses %>%
   html_text() %>%
   str_split("\u00b7") # the unicode for dot character
 
-beds <- params %>% sapply(function(x) parse_number(x[1]))
-baths <- params %>% sapply(function(x) parse_number(x[2]))
-house_area <- params %>% sapply(function(x) parse_number(x[3]))
+beds <- params %>% sapply(function(x) parse_number(x[[1]]))
+baths <- params %>% sapply(function(x) parse_number(x[[2]]))
+house_area <- params %>% sapply(function(x) parse_number(x[[3]]))
 
 # Side note: Not worth it in this case, but to not have to copy-pasta:
 info <- params %>% 
@@ -142,37 +143,25 @@ To get you started off, the nodeset for the reviews all share a class `innerBubb
 ```{r, eval = TRUE}
 url <- read_html("https://www.tripadvisor.com/Attraction_Review-g60713-d104675-Reviews-Golden_Gate_Bridge-San_Francisco_California.html")
 
-reviews = url %>%
-  html_nodes(xpath = '//*[@id="REVIEWS"]')
-
-
-
-quotes <- reviews %>%
-  html_nodes(".quote span") %>%
+quotes <- url %>%
+  html_nodes(".quote .noQuotes") %>%
   html_text()
 quotes
 
-rating <- reviews %>% 
+rating <- url %>% 
   html_nodes(".rating .sprite-rating_s_fill") %>% 
   html_attr("alt")
 rating
 
-text <- reviews %>% 
+text <- url %>% 
   html_nodes(".entry .partial_entry") %>% 
   html_text() %>% 
   str_replace_all("(\n)*", "")
 text
 
-date <- reviews %>% 
+date <- url %>% 
   html_nodes(".rating .ratingDate") %>% 
   html_attr("title")
 date
-
-  
-
-
-
-
-
 
 ```

@@ -195,20 +195,23 @@ Now we are ready to make our plot! Use `do.call` to turn `currencies` into a dat
 
 ```{r}
 exrate.df = do.call(data.frame, currencies) %>% 
-  mutate(exrate_times = exrate_root %>% 
+  mutate(time = exrate_root %>% 
   xml_find_all('//Cube[@time]') %>%
   xml_attr("time") %>% 
   ymd())
+
+
+
 
 ```
 
 Wrangle the data frame to produce the plot below:
 
 ```{r}
-ggplot(exrate.df, aes(x=exrate_times)) + 
-  geom_line(aes(y=GBP, color="GBP")) + 
-  geom_line(aes(y=USD, color="USD")) + 
-  geom_line(aes(y=CAD, color="CAD")) +
-  geom_line(aes(y=AUD, color="AUD"))
+exrate.df %>%
+  gather(key=currency, value=rate, -time) %>% 
+  ggplot(aes(x=time, y=rate, color=currency)) + 
+  geom_line()+
+  labs(title="Exchange Rates Over Time", x = "Date", y = "Exchange Rate (against Euro)")
 
 ```

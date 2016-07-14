@@ -1,6 +1,6 @@
 ---
 title: "hw5"
-author: "Andrew Do"
+author: "Clara Chun"
 date: Due 11:59pm Wednesday, July 13, 2016
 output: html_document
 ---
@@ -8,10 +8,17 @@ output: html_document
 ## Packages
 
 The following packages are allowed for this assignment:
-```{r, echo = FALSE}
-
+* rvest
+* xml2
+* ggplot2
+* lubridate
+* stringr
+* dplyr
+* tidyr
+* readr
+* scales
+```{r setup, include=FALSE}
 library(rvest)
-library(xml2)
 library(ggplot2)
 library(lubridate)
 library(stringr)
@@ -43,33 +50,86 @@ If you're using RStudio, the numbers on the bottom-left of the code panel show w
 
 ## Starter Code
 The starter code below should prime your thinking.  The angle brackets are __not__ literal.  Do not include them when running your code.
-```{r, eval = F}
-
-# remember that the dot shows where the pipe is placing the output
-# of the function from the last line.  The third pipe leads into the subsetting
-# operator.  This is probably where you want to remove problem nodes...
+```{r, echo = T, fig.width=10}
 page <- "http://en.wikipedia.org/wiki/List_of_nuclear_reactors"
-xpath <- '//*[@id="mw-content-text"]/table[16]'
+xpath <- ".mediawiki .wikitable" 
 table_list <- page %>%
   read_html() %>%
-  html_nodes(xpath = '//*[@id="mw-content-text"]/table[16]') %>%
-  .[<some_vector_here>] %>%
+  html_nodes(xpath) %>%
+  .[c(14,21)] %>%
   html_table(fill = TRUE)
 
-
-
-# The above code returns a list of tables.  Use subsetting to pick out specific tables
-table_list[[<some_number_here>]]
-
-# A vector of names you might want in your initial data frame
 new_names <- c("name", "reactor", "type", "model", "status", 
                "net", "gross", "const_start", "op_start", "closure")
 
-# An example of slice from the dplyr package.  It's like filter, but for picking
-# out specific rows.  You may or may not use this.
-df <- data.frame(x = 1:3, y = 4:6)
-df %>% slice(c(1,3))
-df %>% slice(-3)
+names(table_list[[1]]) = new_names
+names(table_list[[2]]) = new_names
+
+fr.df = as.data.frame(table_list[[1]]) %>%
+  slice(-c(1,51)) %>% 
+  mutate(tname= "France")
+
+jp.df = as.data.frame(table_list[[2]]) %>% 
+  slice(-c(1)) %>%
+  mutate(tname="Japan")
+table_df = rbind(fr.df, jp.df)
+
+rlvl = c("BWR", "FBR", "GCR", "HWGCR", "PWR")
+rlbl = c("Boiling Water", "Fast Breeder", "Gas Cooled", 
+         "Heavy Water Gas Cooled", "Pressurized Water")
+
+#parse const_start to class "date" and parse net to class "numeric" and 
+#set the 'type' column into factor with full names of reactors
+table_df = table_df %>% 
+  #filter(const_start !== NA)
+  mutate(const_start = dmy(const_start)) %>% 
+  mutate(net = as.numeric(net)) %>% 
+  mutate(type=factor(type, rlvl, rlbl))
+
+mindate = ymd("1955-01-01")
+maxdate = ymd("2005-01-01")
+ggplot(table_df, aes(const_start, net, shape=type, color=tname)) +
+  geom_point(size=2) +
+  labs(title="Net Reactor Capacities in France and Japan", 
+       x="Construction Start Date",
+       y="Net Capacity (MW)",
+       color="Country",
+       shape="Reactor Type") +
+  scale_x_date(limits=c(mindate, maxdate), 
+               labels=date_format("%Y")) +
+  scale_y_continuous(limits=c(0,1500))
+```
+
+```{r, fig.height=7, fig.width=9}
+jp.df = jp.df %>% 
+  filter(op_start != "") %>% 
+  mutate(const_start = dmy(const_start)) %>% 
+  mutate(op_start = dmy(op_start)) %>%
+  unite(name.reactor, name, reactor, sep="", remove=FALSE) %>% 
+  mutate(name.reactor = factor(name.reactor, 
+                               levels=sort(name.reactor, decreasing=TRUE),
+                               ordered=TRUE)) %>% 
+  mutate(type = factor(type, rlvl, rlbl)) %>% 
+  mutate(nlbl = ifelse(
+    str_detect(name.reactor, "1"), 
+    str_replace_all(name.reactor, "1", ""), 
+    character(1)))
+
+datemin=ymd("1960-01-01")
+datemax=ymd("2010-01-01")
+ggplot(jp.df, 
+       aes(x=const_start, y=name.reactor, 
+           xend=op_start, yend=name.reactor, 
+           color=type)) +
+  geom_segment(size=0.5) +
+  labs(title="Construction Times for Japanese Nuclear Reactors", 
+       x="Date",
+       y="Reactor Site",
+       color="Reactor Type") +
+  scale_x_date(limits=c(datemin, datemax), 
+               breaks=seq(datemin, datemax, "5 years"), 
+               labels=date_format("%Y")) +
+  scale_y_discrete(labels=rev(jp.df$nlbl))
 ```
 
 ## Hints:
