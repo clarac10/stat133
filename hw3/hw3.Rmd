@@ -279,8 +279,6 @@ test = read_csv("yob1880.txt",
 ```
 
 ```{r}
-
-
 setwd("/Users/Clara/Documents/Stat_133/stat133/hw3/babynames")
 
 files = list.files("/Users/Clara/Documents/Stat_133/stat133/hw3/babynames")

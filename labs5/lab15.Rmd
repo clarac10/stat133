@@ -8,7 +8,6 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(xml2)
-setwd("~/Documents/Stat_133/stat133/labs5")
 ```
 
 ## Example of Checking Work

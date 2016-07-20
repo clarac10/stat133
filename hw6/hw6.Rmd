@@ -1,17 +1,25 @@
 ---
 title: "hw6"
-author: ""
+author: "Clara Chun"
 date: "July 13, 2016"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(rvest)
+library(stringr)
+library(shiny)
+library(ggplot2)
 ```
 
 
 ## Messy Style (10 points)
 This homework folder includes a `dirty_code.r` file that some students submitted in the past.  Clean up the script according to our class style guide.  Avoid creating extraneous columns like they did.  You should use the packages covered in this class to make the code more readable.  Instead of manually inputting manufacturer country-of-origin, use the appropriate table [on this wikipedia page](https://en.wikipedia.org/wiki/Automotive_industry) instead.  The alignment won't be perfect, but you can ignore the manufacturers that don't have a direct match (you will still get information on more cars than the original coders did!).
+
 
 ### Hints:
 * The `bz2` extension in `mpg2.csv.bz2` just denotes a file compression.  `read_csv` will still be able to read the file.
@@ -21,7 +29,30 @@ This homework folder includes a `dirty_code.r` file that some students submitted
 * Include a `write_csv()` call in your script, but don't actually submit the cleaned csv.
 
 ```{r, eval = FALSE}
-# <Your Cleanup Code>
+mpg_data <- read.csv("mpg2.csv.bz2", stringsAsFactors=FALSE, strip.white=TRUE)
+
+wiki = read_html("https://en.wikipedia.org/wiki/Automotive_industry") %>% 
+  html_nodes(".mediawiki .wikitable") %>%
+  .[4] %>% 
+  html_table(fill = TRUE) %>% 
+  as.data.frame() %>%
+  select(Make, Parent.Country) %>% 
+  rename(make = Make)
+
+mpg_data = inner_join(mpg_data, wiki)
+
+mpg_data = mpg_data %>% 
+  select(-c(eng_dscr, trans_dscr)) %>% 
+  mutate(guzzler = !is.na(guzzler) & guzzler == "G") %>% 
+  mutate(vclass = str_replace_all(vclass, "[2-4][Ww][Dd]", "")) %>% 
+  mutate(vclass = str_replace_all(vclass, "/", "")) %>% 
+  mutate(vclass = str_replace_all(vclass, "( - )", "")) %>% 
+  mutate(vclass = str_replace_all(vclass, "Vans(.)*(.)*", "Vans")) %>% 
+  mutate(vclass = str_replace_all(vclass, "Midsize-", "")) %>% 
+  mutate(vclass = str_replace_all(vclass, " $", "")) %>% 
+  mutate(vclass = str_replace_all(vclass, "Vehicle$", "Vehicles"))
+
+write_csv(mpg_data, path = "mpg2_clean.csv")
 ```
 
 ## Shiny App (30 points)
@@ -42,7 +73,59 @@ When you are done, sign up for a free account on [shinyapps.io](http://www.shiny
 The data are not in the right format to produce the plots.  You should write a script that cleans your data exports a `cleaned_demographics.csv` file.  Copy the contents of the script into the chunk below.  I should be able to run this code to go from the three included data files to your `cleaned_demographics.csv` without hassle.
 
 ```{r cleaning, eval = FALSE}
-# <Your cleaning code>
+
+gdppc = read_csv("gdppc.csv")
+population = read_csv("population.csv")
+lifeexpectancy = read_csv("lifeexpectancy.csv")
+
+region_df = read_html("https://docs.google.com/spreadsheets/d/1OxmGUNWeADbPJkQxVPupSOK5MbAECdqThnvyPrwG5Os/pub?gid=1#") %>%
+  html_nodes("#1 .waffle") %>% 
+  html_table(fill = TRUE) %>% 
+  as.data.frame() %>% 
+  select(2,3) %>% 
+  rename(country = Var.2) %>% 
+  rename(region = Var.3) %>% 
+  slice(-1)
+
+lifeexpectancy = lifeexpectancy %>% 
+  rename(country = `Life expectancy with projections. Yellow is IHME`) %>% 
+  filter(!is.na(country)) %>% 
+  gather(key = "year", value = "life_expectancy", -country) %>% 
+  mutate(year = as.integer(year))
+
+gdppc = gdppc %>% 
+  rename(country = `GDP per capita`) %>% 
+  filter(!is.na(country)) %>% 
+  gather(key = "year", value = "GDP", -country) %>% 
+  mutate(year = as.integer(year))
+
+names(population)[1] = "country"
+population[83:92] = NULL
+
+population = population %>% 
+  filter(!is.na(country)) %>% 
+  gather(key = "year", value = "pop", -country) %>% 
+  mutate(year = as.integer(year))
+
+missing_years = setdiff(1800:2015, unique(population$year))
+
+missingdf = lapply(missing_years, function(x) {
+  data.frame(country = unique(population$country), year = rep(x, times = 275), pop = NA)
+})
+
+missing_df = do.call(rbind, missingdf)
+
+population = rbind(population, missing_df) %>% 
+  arrange(year) %>% 
+  mutate(decade = (year %/% 10) * 10) %>% 
+  group_by(country, decade) %>%
+  mutate(pop = ifelse(is.na(pop) & !all(is.na(pop)), mean(pop, na.rm = TRUE), pop)) 
+
+full_df = full_join(gdppc, lifeexpectancy)
+full_df = full_join(full_df, population)
+full_df = left_join(full_df, region_df)
+
+write_csv(full_df, path = "cleaned_demographics.csv")
 ```
 
 #### Hints
@@ -56,12 +139,12 @@ Create `server.R` and `ui.R` scripts for your app.  Copy the contents of your sc
 
 [Change the link in the parentheses to be the link to your app](http:www.yourlinkgoeshere.com)
 
-```{r ui, eval = FALSE}
-# <Your ui code>
+```{r ui, eval = TRUE}
+
 ```
 
-```{r server, eval = FALSE}
-# <Your server code>
+```{r server, eval = TRUE}
+
 ```
 
 ## Bonus (30 points)
@@ -70,11 +153,11 @@ There's a way to make the plot even more interactive, but not with `ggplot`.  `g
 [Change the link in the parentheses to be the link to your app](http:www.yourlinkgoeshere.com)
 
 ```{r, eval = FALSE}
-# <Your ui code>
+
 ```
 
 ```{r, eval = FALSE}
-# <Your server code>
+
 ```
 
 ## Submission

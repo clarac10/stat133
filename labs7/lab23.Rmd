@@ -1,0 +1,56 @@
+---
+title: "lab23"
+author: "Clara Chun"
+date: "July 20, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggmap)
+library(mapdata)
+library(jsonlite)
+library(dplyr)
+library(ggplot2)
+```
+
+## GeoJSON and Earthquakes
+
+The United States Geological Survey (USGS) keeps a public running record of detected earthquakes on its website, updated once every 15 minutes.  Included with this lab is the earthquake data for the past 30 days as of 6am today.  Your task is to spatially display all the earthquakes in the continental US.  You should somehow represent the magnitude of the earthquakes in your visualization.
+
+```{r}
+earthquake = fromJSON("~/Documents/Stat_133/stat133/labs7/all_month.geojson")
+geometry = earthquake$features$geometry %>% 
+  mutate(coordinates = str_replace_all(coordinates, "c\\(", "")) %>% 
+  mutate(coordinates = str_replace_all(coordinates, "\\)", ""))
+
+properties = earthquake$features$properties
+
+geometry = geometry %>% 
+  mutate(magnitude = properties$mag)
+
+
+  
+geometry = separate(geometry, coordinates, c("latitude", "longitude", "elevation"), "," ) 
+  
+geometry = geometry %>% 
+  mutate(latitude = as.numeric(latitude)) %>% 
+  mutate(longitude = as.numeric(longitude)) %>% 
+  mutate(elevation = as.numeric(elevation))
+
+usa_bbox = make_bbox(lat = lat, lon = long, data = usa)
+
+usa_big = get_map(location = geometry_bbox, source = "google", maptype = "terrain")
+
+ggmap(usa_big) +
+  geom_point(data = geometry,
+             mapping = aes(x = latitude, y = longitude, color = magnitude),
+             size = 0.5) +
+  scale_color_gradient(low = "orange", high = "purple") +
+  labs(title = "Earthquakes of North America",
+       x = "Longitude",
+       y = "Latitude")
+  
+  
+```
+
