@@ -236,7 +236,7 @@ write_csv(full_df, path = &quot;cleaned_demographics.csv&quot;)</code></pre>
 <div id="making-the-shiny-app" class="section level3">
 <h3>Making the Shiny App</h3>
 <p>Create <code>server.R</code> and <code>ui.R</code> scripts for your app. Copy the contents of your script into the chunks below. I should be able to reproduce your app by running your cleaning script followed by your server and ui code.</p>
-<p><a href="http:www.yourlinkgoeshere.com">Change the link in the parentheses to be the link to your app</a></p>
+<p><a href="https://clarajchun.shinyapps.io/hwapp/">Change the link in the parentheses to be the link to your app</a></p>
 <pre class="r"><code>library(shiny)
 
 ui = shinyUI(fluidPage(
@@ -244,33 +244,64 @@ ui = shinyUI(fluidPage(
   
   sidebarLayout(
     sidebarPanel(
+      
       sliderInput(&quot;year&quot;,
                   label = &quot;Year:&quot;,
                   min = 1800,
                   max = 2015,
                   value = 1800,
                   step = 1,
-                  animate = animationOptions(interval=22, loop=TRUE))
+                  animate = animationOptions(interval=500, loop=TRUE))
       
       
       
     ),
     mainPanel(plotOutput(&quot;lifeplot&quot;))
     
-      
-    )
+    
   )
-  
+)
+
 )</code></pre>
 <pre class="r"><code>library(shiny)
 library(dplyr)
+library(scales)
+library(readr)
+library(tidyr)
 library(ggplot2)
+
+full_df = read_csv(&quot;cleaned_demographics.csv&quot;)
 
 server = shinyServer(function(input, output) {
   
   output$lifeplot = renderPlot ({
-    x = &quot;GDP Per Capita (Inflation-Adjusted)&quot;
-    y = &quot;Life Expectancy at Birth&quot;
+    x = &quot;GDP&quot;
+    y = &quot;life_expectancy&quot;
+    size = &quot;pop&quot;
+    fill = &quot;region&quot;
+    colour = &quot;black&quot;
+    
+  full_df = full_df %&gt;% 
+    filter(year %in% input$year)
+    
+  ggplot(full_df) +
+    geom_point(aes_string(x = x, y = y, fill = fill, size = size), 
+               alpha = 0.8, colour = colour, pch = 21) +
+    scale_shape(solid = FALSE) +
+    labs(title = input$year,
+         x = &quot;GDP Per Capita (Inflation-Adjusted)&quot;,
+         y = &quot;Life Expectancy at Birth&quot;) +
+    scale_x_log10(limits = c(500, 50000), breaks = c(500, 5000, 50000), labels = dollar_format(prefix = &quot;$&quot;)) +
+    scale_y_continuous(limits = c(20, 80), breaks = seq(25,75,25), labels = c(&quot;25 years&quot;, &quot;50 years&quot;, &quot;75 years&quot;))+
+    guides(size = FALSE) +
+    scale_size_area(max_size = 25) +
+    theme(axis.title.x = element_text(size = 15),
+          axis.title.y = element_text(size = 15),
+          plot.title = element_text(size = 20)) +
+    scale_fill_manual(values = c(&quot;green&quot;, &quot;red&quot;, &quot;yellow&quot;, &quot;purple&quot;, &quot;grey&quot;, &quot;blue&quot;))
+    
+           
+    
   })
 })</code></pre>
 </div>
@@ -278,7 +309,45 @@ server = shinyServer(function(input, output) {
 <div id="bonus-30-points" class="section level2">
 <h2>Bonus (30 points)</h2>
 <p>There’s a way to make the plot even more interactive, but not with <code>ggplot</code>. <code>ggplot</code> has a cousin called <code>ggvis</code> that allows you to, among other things, hover over points in the plot to reveal information about that point. Implement a <code>shiny</code> app that acts like the one in the previous part, but has the additional feature of revealing the country when you hover your cursor over the data point. The hover functionality <a href="http://www.gapminder.org/tools/bubbles#_state_time_value=1831">should look something like this</a>. Upload your app to your shiny.io account and include the link below in addition to copies of your <code>ui.R</code> and <code>server.R</code> scripts. Given that it’s bonus material, I will not be providing any troubleshooting.</p>
-<p><a href="http:www.yourlinkgoeshere.com">Change the link in the parentheses to be the link to your app</a></p>
+<p><a href="https://clarajchun.shinyapps.io/extracred/">Change the link in the parentheses to be the link to your app</a></p>
+<pre class="r"><code>library(shiny)
+library(ggvis)
+
+ui = shinyUI(fluidPage(
+  titlePanel(&quot;Life Expectancy and Income&quot;),
+  
+
+  mainPanel(
+    uiOutput(&quot;ggvis_ui&quot;),
+    ggvisOutput(&quot;ggvis&quot;)
+  )
+))</code></pre>
+<pre class="r"><code>library(ggvis)
+library(readr)
+library(shiny)
+library(dplyr)
+
+full_df = read_csv(&quot;cleaned_demographics.csv&quot;)
+
+
+
+
+
+server = shinyServer(function(input, output, session) {
+  input_year = reactive({input$year})
+full_df %&gt;% 
+  ggvis(x = ~GDP, y = ~life_expectancy) %&gt;% 
+  filter(year == eval(input_slider(1800, 2015, label = &quot;Year:&quot;, 
+                                   animate = animationOptions(interval = 250, loop = TRUE)))) %&gt;% 
+  layer_points(fill = ~region) %&gt;% 
+  add_axis(&quot;x&quot;, title = &quot;GDP&quot;) %&gt;% 
+  add_axis(&quot;y&quot;, title = &quot;Life Expectancy&quot;, values = seq(0, 100, 25)) %&gt;%
+  bind_shiny(&quot;ggvis&quot;, &quot;ggvis_ui&quot;)
+
+ 
+
+
+})</code></pre>
 </div>
 <div id="submission" class="section level2">
 <h2>Submission</h2>
