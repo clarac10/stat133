@@ -10,6 +10,7 @@ library(dplyr)
 library(ggplot2)
 library(readr)
 library(purrr)
+library(tidyr)
 
 soln = read_rds("hw8_sql_results.rds")
 ```
@@ -139,7 +140,8 @@ WHERE
   nyflights.carrier = 'UA'
 ORDER BY
   nyplanes.year
-"))
+")) %>% 
+  collect(n = Inf)
 
 planeinfo
 
@@ -187,7 +189,7 @@ weather = flights %>%
   tbl(sql("
           SELECT
            nyweather.wind_speed,
-           nyweather.hour,
+           nyflights.hour,
            nyweather.time_hour
           FROM
            nyweather LEFT JOIN nyflights

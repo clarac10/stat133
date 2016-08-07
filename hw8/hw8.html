@@ -223,7 +223,12 @@ WHERE
   nyflights.carrier = 'UA'
 ORDER BY
   nyplanes.year
+<<<<<<< HEAD
+&quot;)) %&gt;% 
+  collect(n = Inf)
+=======
 &quot;))
+>>>>>>> e76db43698ae40b3d8fbd68520b92c8187b09252
 
 planeinfo
 
@@ -263,7 +268,11 @@ weather = flights %&gt;%
   tbl(sql(&quot;
           SELECT
            nyweather.wind_speed,
+<<<<<<< HEAD
+           nyflights.hour,
+=======
            nyweather.hour,
+>>>>>>> e76db43698ae40b3d8fbd68520b92c8187b09252
            nyweather.time_hour
           FROM
            nyweather LEFT JOIN nyflights
